@@ -55,6 +55,7 @@
     "@babel/preset-env": "^7.22.5",
     "@mozilla/readability": "^0.5.0",
     "@types/cors": "^2.8.13",
+    "@types/dompurify": "^3.0.5",
     "@types/jest": "^29.5.2",
     "@types/morgan": "^1.9.4",
     "@types/node": "^18.16.16",
