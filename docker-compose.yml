@@ -1,0 +1,26 @@
+#
+# Docker NodeJS
+# Example Docker Compose file
+#
+
+# For more information about the directives defined here:
+# https://docs.docker.com/compose/compose-file/
+
+# Docker compose file version
+version: "3.8"
+
+services:
+  app:
+    build: .
+    working_dir: /app
+    env_file:
+      - .env
+    ports:
+      - ${PORT}:${PORT}
+    volumes:
+      - .:/app
+    command: npm run watch
+
+#networks:
+#  docker-graphql-node-ddd-postgre-auth_common_network:
+#    external: true
