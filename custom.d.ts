@@ -4,3 +4,9 @@ declare module 'redis' {
     get: (key: string) => Promise<Error | string | null>;
   }
 }
+
+declare module 'http' {
+  interface IncomingMessage {
+    body: any;
+  }
+}

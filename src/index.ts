@@ -1,37 +1,59 @@
-import { createServer } from 'node:http';
-import { Readability } from '@mozilla/readability';
-import { JSDOM } from 'jsdom';
+import 'module-alias/register';
+import { createServer, IncomingMessage, ServerResponse } from 'http';
+import url from 'url';
+import routes from './routes';
+import loggerMiddleware from './middlewares';
 
-async function reader(url) {
-  const dom = await JSDOM.fromURL(url);
-  const reader = new Readability(dom.window.document);
-  return reader.parse();
-}
+const httpServer = createServer((request: IncomingMessage, response: ServerResponse) => {
+  const parsedUrl = url.parse(request.url, true);
+  const query = parsedUrl.query;
+  const path = parsedUrl.pathname;
+  const method = request?.method?.toUpperCase();
 
-const httpServer = createServer((req, res) => {
-  const body = [];
-  req
-    .on('error', err => {
-      console.error(err);
-    })
-    .on('data', chunk => {
-      body.push(chunk);
-    })
-    .on('end', async () => {
-      if (!body?.length) return;
-      const data = Buffer.concat(body).toString();
+  let handler = routes[path] && routes[path][method];
 
-     const { url } = JSON.parse(data);
+  if (!handler) {
+    const routeKeys = Object.keys(routes).filter((key) => key.includes(':'));
 
-      console.log('url url url', url);
-
-      const article = await reader(url);
-
-      console.log('body body body body body', article);
-
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(article?.textContent);
+    const matchedKey = routeKeys.find((key) => {
+      // replacing each segment of the key that starts with a colon (:)
+      const regex = new RegExp(`^${key.replace(/:[^/]+/g, '([^/]+)')}$`);
+      return regex.test(path);
     });
+
+    if (matchedKey) {
+      const regex = new RegExp(`^${matchedKey.replace(/:[^/]+/g, '([^/]+)')}$`);
+      const dynamicParams = regex?.exec(path).slice(1);
+      const dynamicHandler = routes[matchedKey][method];
+
+      const paramKeys = matchedKey?.match(/:[^/]+/g)
+        .map((key) => key.substring(1));
+
+      const params = dynamicParams.reduce(
+        (acc, val, i) => ({ ...acc, [paramKeys[i]]: val }),
+        {},
+      );
+
+      // set params in req
+      request.params = params;
+
+      handler = dynamicHandler;
+    }
+  }
+
+  // url and method not match
+  if (!handler) {
+    handler = routes.notFound;
+  }
+
+  // set query string in req
+  request.query = {};
+
+  for (const key in query) {
+    request.query[key] = query[key];
+  }
+
+  handler(request, response);
 });
 
 httpServer.on('request', (request, response) => {
@@ -42,14 +64,23 @@ httpServer.on('request', (request, response) => {
   // ... pas besoin d'aller plus loin dans le traitement, on renvoie la réponse
   if (request.method === 'OPTIONS') {
     // On liste des méthodes et les entêtes valides
-    response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Origin, Authorization');
-    response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    response.setHeader(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Accept, Origin, Authorization',
+    );
+    response.setHeader(
+      'Access-Control-Allow-Methods',
+      'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+    );
 
     return response.end();
   }
 
   // suite du traitement ...
 });
+
+// global middleware
+httpServer.on('request', loggerMiddleware);
 
 // starts a simple http server locally on port 3000
 httpServer.listen(8484, '0.0.0.0', () => {
