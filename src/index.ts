@@ -4,7 +4,7 @@ import url from 'url';
 import routes from './routes';
 import loggerMiddleware from './middlewares';
 
-const httpServer = createServer((request: IncomingMessage, response: ServerResponse) => {
+const httpServer = createServer(function(request: IncomingMessage, response: ServerResponse) {
   const parsedUrl = url.parse(request.url, true);
   const query = parsedUrl.query;
   const path = parsedUrl.pathname;
@@ -20,6 +20,7 @@ const httpServer = createServer((request: IncomingMessage, response: ServerRespo
       const regex = new RegExp(`^${key.replace(/:[^/]+/g, '([^/]+)')}$`);
       return regex.test(path);
     });
+
 
     if (matchedKey) {
       const regex = new RegExp(`^${matchedKey.replace(/:[^/]+/g, '([^/]+)')}$`);
