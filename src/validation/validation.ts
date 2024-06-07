@@ -1,5 +1,5 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import { getPostBodyAsync, response } from '@/utils';
+import { getPostBodyAsync, response } from '../utils';
 
 /**
  * Middleware function to validate user data in a POST request.
