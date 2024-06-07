@@ -5,7 +5,7 @@ import { IncomingMessage } from 'http';
  @return {Promise} - A promise resolves with the parsed request body or rejects with an error
  */
 function getPostBodyAsync(request: IncomingMessage)  {
-  return new Promise((resolve, reject) => {
+  return new Promise(function (resolve, reject){
     let body = "";
 
     request.on("data", (chunk: string) => {
