@@ -8,5 +8,7 @@ declare module 'redis' {
 declare module 'http' {
   interface IncomingMessage {
     body: any;
+    query: any;
+    params: any;
   }
 }
