@@ -4,7 +4,7 @@ import { IncomingMessage } from 'http';
  @param {Object} req - The HTTP request object
  @return {Promise} - A promise resolves with the parsed request body or rejects with an error
  */
-function getPostBodyAsync(request: IncomingMessage)  {
+function getPostBodyAsync(request: IncomingMessage): Promise<IncomingMessage>  {
   return new Promise(function (resolve, reject){
     let body = "";
 
@@ -16,7 +16,7 @@ function getPostBodyAsync(request: IncomingMessage)  {
       try {
         body = body ? JSON.parse(body) : {};
 
-        resolve(body);
+        resolve(body as unknown as IncomingMessage);
       } catch (error) {
         reject(error);
       }

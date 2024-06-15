@@ -20,12 +20,13 @@
     "auth"
   ],
   "_moduleAliases": {
-    "container": "./build/src/container",
-    "app": "./build/src/app",
-    "core": "./build/src/core",
-    "domain": "./build/src/domain",
-    "infra": "./build/src/infra",
-    "interfaces": "./build/src/interfaces"
+    "@/container": "./build/container",
+    "@/controllers": "./build/controllers",
+    "@/middlewares": "./build/middlewares",
+    "@/routes": "./build/routes",
+    "@/services": "./build/services",
+    "@/validation": "./build/validation",
+    "@/utils": "./build/utils"
   },
   "author": "M2G",
   "scripts": {

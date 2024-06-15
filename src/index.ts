@@ -4,13 +4,27 @@ import url from 'url';
 import routes from './routes';
 import loggerMiddleware from './middlewares';
 
-const httpServer = createServer(function(request: IncomingMessage, response: ServerResponse) {
-  const parsedUrl = url.parse(request.url, true);
+const httpServer = createServer(function (
+  request: IncomingMessage,
+  response: ServerResponse,
+): void {
+  // @see https://gist.github.com/balupton/3696140
+  response.setHeader('Access-Control-Allow-Origin', '*');
+  response.setHeader('Access-Control-Request-Method', '*');
+  response.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET');
+  response.setHeader('Access-Control-Allow-Headers', '*');
+  if (request.method === 'OPTIONS') {
+    response.writeHead(200);
+    response.end();
+    return;
+  }
+
+  const parsedUrl = url.parse((request.url as string), true);
   const query = parsedUrl.query;
   const path = parsedUrl.pathname;
   const method = request?.method?.toUpperCase();
 
-  let handler = routes[path] && routes[path][method];
+  let handler = path && routes[path] && routes[path][method];
 
   if (!handler) {
     const routeKeys = Object.keys(routes).filter((key) => key.includes(':'));
@@ -18,20 +32,20 @@ const httpServer = createServer(function(request: IncomingMessage, response: Ser
     const matchedKey = routeKeys.find((key) => {
       // replacing each segment of the key that starts with a colon (:)
       const regex = new RegExp(`^${key.replace(/:[^/]+/g, '([^/]+)')}$`);
-      return regex.test(path);
+      return path && regex.test(path);
     });
-
 
     if (matchedKey) {
       const regex = new RegExp(`^${matchedKey.replace(/:[^/]+/g, '([^/]+)')}$`);
-      const dynamicParams = regex?.exec(path).slice(1);
+      const dynamicParams = (regex as any).exec(path).slice(1);
       const dynamicHandler = routes[matchedKey][method];
 
-      const paramKeys = matchedKey?.match(/:[^/]+/g)
-        .map((key) => key.substring(1));
+      const paramKeys = matchedKey
+        ?.match(/:[^/]+/g)
+        ?.map((key) => key.substring(1));
 
-      const params = dynamicParams.reduce(
-        (acc, val, i) => ({ ...acc, [paramKeys[i]]: val }),
+      const params = paramKeys && dynamicParams?.reduce(
+        (acc: any, val: any, i: string | number) => ({ ...acc, [paramKeys[i]]: val }),
         {},
       );
 
@@ -55,29 +69,6 @@ const httpServer = createServer(function(request: IncomingMessage, response: Ser
   }
 
   handler(request, response);
-});
-
-httpServer.on('request', (request, response) => {
-  // On spécifie l'entête pour le CORS
-  response.setHeader('Access-Control-Allow-Origin', '*');
-
-  // On gère le cas où le navigateur fait un pré-contrôle avec OPTIONS ...
-  // ... pas besoin d'aller plus loin dans le traitement, on renvoie la réponse
-  if (request.method === 'OPTIONS') {
-    // On liste des méthodes et les entêtes valides
-    response.setHeader(
-      'Access-Control-Allow-Headers',
-      'Content-Type, Accept, Origin, Authorization',
-    );
-    response.setHeader(
-      'Access-Control-Allow-Methods',
-      'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-    );
-
-    return response.end();
-  }
-
-  // suite du traitement ...
 });
 
 // global middleware

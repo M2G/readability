@@ -1,5 +1,6 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import { getPostBodyAsync, response } from '../utils';
+import Status from "http-status";
+import { getPostBodyAsync, response } from '@/utils';
 
 /**
  * Middleware function to validate user data in a POST request.
@@ -25,7 +26,7 @@ async function validateUserData(
 
     if (!body.url) {
       return response(res, {
-        status: 400,
+        status: Status.BAD_REQUEST,
         data: { message: 'URL is required' },
       });
     }
@@ -34,8 +35,10 @@ async function validateUserData(
 
     next(request, res);
   } catch (error) {
-    console.log(error);
-    response(res, { status: 400, data: { message: error.message } });
+    if (error instanceof Error) {
+      console.log(error);
+      response(res, { status: Status.BAD_REQUEST, data: { message: error.message } });
+    }
   }
 }
 

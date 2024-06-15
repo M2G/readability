@@ -1,7 +1,7 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import { response } from '../utils';
-import readerController from '../controllers';
-import validateUserData from '../validation';
+import { response } from '@/utils';
+import readerController from '@/controllers';
+import validateUserData from '@/validation';
 
 /**
  * Defines the routes and associated controllers for the application.

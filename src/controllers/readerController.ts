@@ -1,7 +1,7 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import Status from 'http-status';
-import { response } from "../utils";
-import reader from "../services";
+import { response } from "@/utils";
+import reader from "@/services";
 
 async function readerController(request: IncomingMessage, res: ServerResponse) {
   try {
@@ -9,7 +9,7 @@ async function readerController(request: IncomingMessage, res: ServerResponse) {
     const article = await reader(body.url);
     const textContent = article?.textContent && decodeURI(article.textContent);
 
-    console.log('article', textContent);
+    console.log('article', article);
 
     const excerpt = article?.excerpt && textContent && textContent.trim().substring(0,  textContent.trim().indexOf(article.excerpt));
 
@@ -24,9 +24,19 @@ async function readerController(request: IncomingMessage, res: ServerResponse) {
       });
     }
 
-    response(res, { data: text, status: Status.OK });
-  } catch (error: { message: string }) {
-    response(res, { status: Status.BAD_REQUEST, data: { message: error.message } });
+    response(res, {
+      data: {
+        lang: article?.lang,
+        content: text,
+        title: article?.title,
+      },
+      status: Status.OK,
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.log(error);
+      response(res, { status: Status.BAD_REQUEST, data: { message: error.message } });
+    }
   }
 }
 

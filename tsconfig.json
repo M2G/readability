@@ -35,6 +35,8 @@
     "rootDirs": ["./src", "./tests"],
     "baseUrl": ".",
     "paths": {
+      "./*": ["./src/*"],
+      "@/*": ["./src/*"],
       "src/*": ["./src/*"],
       "controllers/*": ["./src/controllers/*"],
       "middlewares/*": ["./src/middlewares/*"],
